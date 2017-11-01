@@ -3,13 +3,25 @@ import csv
 import sys
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
-from pandas import date_range,Series,DataFrame,read_csv,qcut
+from pandas import date_range,Series,DataFrame,read_csv, qcut
 from pandas.tools.plotting import radviz,scatter_matrix,bootstrap_plot,parallel_coordinates
 from numpy.random import randn
 from pylab import *
 import brewer2mpl
 from matplotlib import rcParams
 
+
+dark2_colors = brewer2mpl.get_map('Dark2', 'Qualitative', 7).mpl_colors
+
+rcParams['figure.figsize'] = (10, 6)
+rcParams['figure.dpi'] = 150
+rcParams['axes.color_cycle'] = dark2_colors
+rcParams['lines.linewidth'] = 2
+rcParams['axes.facecolor'] = 'white'
+rcParams['font.size'] = 14
+rcParams['patch.edgecolor'] = 'white'
+rcParams['patch.facecolor'] = dark2_colors[0]
+rcParams['font.family'] = 'StixGeneral'
 
 # Функция для чтения вакасии из командной строки
 def get_vac():
@@ -82,7 +94,7 @@ def parse(html):
 # Функция обработки требований
 def datacl(lvac):
 	trash = [' ','в','на','по','около','с','под','\n','\t','и','за','этот','его','прочее','его','пр','др','проч','от','-']
-	punkt = [',','.',':',';','%','#','(',')']
+	punkt = [',','.',':',';','%','/','(',')',"'",'"','-']
 	cld = []
 
 	for i in lvac:
@@ -107,47 +119,43 @@ def fintr(cld):
 	pairs = []
 
 	for i in cld:
-		slv.append(i)
+		for j in i:
+			slv.append(j)
 
 	for i in slv:
 		for j in range(slv.count(i)-1):
 			slv.remove(i)
+	
+	for i in slv:
+		print(i)
+	
 	slv.sort()
 
-	for i in slv:
-		for j in slv:
-			for k in slv:
-				c = 0
-				for v in cld:
-					if i != j and i != k and j !=k:
-						if i in v and j in v and k in v:
+	for i in range(len(slv[])):
+		for j in range(len(slv[i:30])):
+			for k in range(len(slv[j:30])):
+				if slv[i] != slv[j] and slv[i] != slv[k] and slv[j]!= slv[k]:
+					c = 0
+					for v in cld:
+						if slv[i] in v and slv[j] in v and slv[k] in v:
 							c += 1 
-				pairs.append([i[0]+' '+j[0]+' '+k[0],c])
+					pairs.append([slv[i][0]+' '+slv[j][0]+' '+slv[k][0],c])	
+
 	return(pairs)
 
 # Функция графического вывода полученных данных
-
-
-dark2_colors = brewer2mpl.get_map('Dark2','Qualitative',7).mpl_colors
-rcParams['figure.figsize'] = (10,6)
-rcParams['figure.dpi'] = 150
-rcParams['axes.color_cycle'] = dark2_colors
-rcParams['lines.linewidth'] = 2
-rcParams['axes.facecolor'] = 'white'
-rcParams['font.size'] = 14
-rcParams['patch.edgecolor'] = 'white'
-rcParams['patch.facecolor'] = dark2_colors[0]
-rcParams['font.family'] = 'StixGeneral'
-
-def remove_border(axes=None, top=False, right = False, left = True, bottom = True):
-	ax = axes or pls.gca()
+def remove_border(axes=None, top=False, right=False, left=True, bottom=True):
+	ax = axes or plt.gca()
 	ax.spines['top'].set_visible(top)
 	ax.spines['right'].set_visible(right)
 	ax.spines['left'].set_visible(left)
 	ax.spines['bottom'].set_visible(bottom)
+    	
+	#turn off all ticks
 	ax.yaxis.set_ticks_position('none')
 	ax.xaxis.set_ticks_position('none')
 
+	#now re-enable visibles
 	if top:
 		ax.xaxis.tick_top()
 	if bottom:
@@ -157,45 +165,15 @@ def remove_border(axes=None, top=False, right = False, left = True, bottom = Tru
 	if right:
 		ax.yaxis.tick_right()
 
-def drimage(pairs):
-	naz = []
-	kolvo = []
-
-	for i in pairs:
-		naz.append(i[0])
-		kolvo.append(i[1])
-
-	grad = DataFrame({'nazvanie' : naz, 'kolvo' : kolvo})
-
-	plt.figure(figsize = (3,8))
-
-	naz = grad.naz[grad.change > 0]
-	kolvo = grad.kolvo[grad.change > 0]
-	pos = np.arange(len(kolvo))
-
-	plt.title('Список наиболее востребованных умений')
-	plt.barh(pos, kolvo)
-
-	for p , n , k in zip(pos, naz, kolvo):
-		plt.annotate(str(k), xy = (k + 1, p + .5), va = 'center')
-
-	ticks = plt.yticks(pos + .5, kolvo)
-	xt = plt.xticks(0)[0]
-	plt.xticks(xt,[' '] * len(xt))
-
-	remove_border(left=False, bottom=False)
-	plt.grid(axis = 'x',color = 'white', linestyle = '-')
-
-	plt.ylim(pos.max(), pos.min() - 1)
-	plt.xlim(0,30)
-
 # Функция главная
 def main():
-
+	
 	path = 'vacancy_list.csv'  
 	lvac = []
 	page_count = 1
-
+	city = []
+	change = []	
+	
 	url = get_vac()
 
 	if page_count > get_page_count(get_html(url)):
@@ -210,8 +188,38 @@ def main():
 	cld = datacl(lvac)
 	pairs = fintr(cld)
 
-	drimage(pairs)
+	for i in pairs:
+		city.append(i[0])
+		change.append(i[1])
 
+	grad = DataFrame({'change' : change, 'city': city})
+ 
+	plt.figure(figsize=(3, 8))
+ 
+	change = grad.change[grad.change > 0]
+	city = grad.city[grad.change > 0]
+	pos = np.arange(len(change))
+ 
+	plt.title('1995-2005 Change in HS graduation rate')
+	plt.barh(pos, change)
+ 
+	#add the numbers to the side of each bar
+	for p, c, ch in zip(pos, city, change):
+    		plt.annotate(str(ch), xy=(ch + 1, p + .5), va='center')
+ 
+	#cutomize ticks
+	ticks = plt.yticks(pos + .5, city)
+	xt = plt.xticks()[0]
+	plt.xticks(xt, [' '] * len(xt))
+ 
+	#minimize chartjunk
+	remove_border(left=False, bottom=False)
+	plt.grid(axis = 'x', color ='white', linestyle='-')
+ 
+	#set plot limits
+	"""plt.ylim(pos.max(), pos.min() - 1)
+	plt.xlim(0, 30)"""	
+			
 	write_csv(pairs,path)
 
 	#for i in cld:
