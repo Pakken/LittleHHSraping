@@ -109,7 +109,7 @@ def fintr(cld):
 		slv.append(i)
 
 	for i in slv:
-		for j in range(count(i)-1):
+		for j in range(slv.count(i)-1):
 			slv.remove(i)
 	slv.sort()
 
