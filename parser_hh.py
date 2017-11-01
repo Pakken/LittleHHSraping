@@ -104,7 +104,8 @@ def datacl(lvac):
 # Функция нахождения количества одинаковых требований
 def fintr(cld):
 	slv = []
-	n_sl = []
+	pairs = []
+
 	for i in cld:
 		slv.append(i)
 
