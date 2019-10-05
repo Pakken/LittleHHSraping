@@ -1,1 +1,1 @@
-# data_mining
+# Small program
