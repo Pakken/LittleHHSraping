@@ -1,3 +1,7 @@
+'''
+Programm to search requirements for pointed profession
+'''
+
 import urllib.request
 import csv
 import sys
